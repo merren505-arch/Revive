@@ -48,7 +48,7 @@ bool GetLibraryPath(PWCHAR path, DWORD length, PWCHAR guid)
 	HKEY oculusKey;
 
 	// Open the library key
-	wcsncat(keyPath, guid, MAX_PATH);
+	wcsncat_s(keyPath, MAX_PATH, guid, _TRUNCATE);
 	error = RegOpenKeyExW(HKEY_CURRENT_USER, keyPath, 0, KEY_READ, &oculusKey);
 	if (error != ERROR_SUCCESS)
 	{
@@ -74,7 +74,7 @@ bool GetLibraryPath(PWCHAR path, DWORD length, PWCHAR guid)
 	WCHAR volume[50] = { L'\0' };
 	wcsncpy(volume, volumePath, 49);
 	GetVolumePathNamesForVolumeNameW(volume, path, length, &total);
-	wcsncat(path, volumePath + 49, MAX_PATH);
+	wcsncat_s(path, length, volumePath + 49, _TRUNCATE);
 	free(volumePath);
 
 	return true;
@@ -106,7 +106,7 @@ bool GetDefaultLibraryPath(PWCHAR path, DWORD length)
 	}
 
 	// Open the default library key
-	wcsncat(keyPath, guid, MAX_PATH);
+	wcsncat_s(keyPath, MAX_PATH, guid, _TRUNCATE);
 	error = RegOpenKeyExW(HKEY_CURRENT_USER, keyPath, 0, KEY_READ, &oculusKey);
 	if (error != ERROR_SUCCESS)
 	{
@@ -132,7 +132,7 @@ bool GetDefaultLibraryPath(PWCHAR path, DWORD length)
 	WCHAR volume[50] = { L'\0' };
 	wcsncpy(volume, volumePath, 49);
 	GetVolumePathNamesForVolumeNameW(volume, path, length, &total);
-	wcsncat(path, volumePath + 49, MAX_PATH);
+	wcsncat_s(path, length, volumePath + 49, _TRUNCATE);
 	free(volumePath);
 
 	return true;
@@ -182,13 +182,13 @@ int wmain(int argc, wchar_t *argv[]) {
 	WCHAR LogPath[MAX_PATH];
 	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, LogPath)))
 	{
-		wcsncat(LogPath, L"\\Revive", MAX_PATH);
+		wcsncat_s(LogPath, MAX_PATH, L"\\Revive", _TRUNCATE);
 		
 		BOOL exists = PathFileExists(LogPath);
 		if (!exists)
 			exists = CreateDirectory(LogPath, NULL);
 
-		wcsncat(LogPath, L"\\ReviveInjector.txt", MAX_PATH);
+		wcsncat_s(LogPath, MAX_PATH, L"\\ReviveInjector.txt", _TRUNCATE);
 		if (exists)
 			g_LogFile = _wfopen(LogPath, L"w");
 	}
@@ -231,7 +231,7 @@ int wmain(int argc, wchar_t *argv[]) {
 					return -1;
 				}
 			}
-			wcsncat(path, L"\\", MAX_PATH);
+			wcsncat_s(path, MAX_PATH, L"\\", _TRUNCATE);
 		}
 		else if (wcscmp(argv[i], L"/debug") == 0)
 		{
@@ -240,8 +240,8 @@ int wmain(int argc, wchar_t *argv[]) {
 		else
 		{
 			// Concatenate all other arguments
-			wcsncat(path, argv[i], MAX_PATH);
-			wcsncat(path, L" ", MAX_PATH);
+			wcsncat_s(path, MAX_PATH, argv[i], _TRUNCATE);
+			wcsncat_s(path, MAX_PATH, L" ", _TRUNCATE);
 		}
 	}
 
