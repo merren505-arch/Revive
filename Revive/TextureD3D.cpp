@@ -22,8 +22,10 @@ TextureD3D::TextureD3D(ID3D11Device* pDevice, ID3D12CommandQueue* pQueue)
 	, m_hInteropTarget(nullptr)
 {
 	m_data.m_pCommandQueue = pQueue;
-	pQueue->GetDevice(IID_PPV_ARGS(&m_pDevice12));
-	pDevice->QueryInterface(IID_PPV_ARGS(&m_pDevice11on12));
+	if (pQueue)
+		pQueue->GetDevice(IID_PPV_ARGS(&m_pDevice12));
+	if (pDevice)
+		pDevice->QueryInterface(IID_PPV_ARGS(&m_pDevice11on12));
 }
 
 TextureD3D::~TextureD3D()
@@ -261,11 +263,11 @@ bool TextureD3D::Init(ovrTextureType Type, int Width, int Height, int MipLevels,
 			// Do the resolve ensuring both resources are transitioned back to D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 			D3D12_RESOURCE_BARRIER barriers[2] = { { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION }, { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION } };
 			barriers[0].Transition.pResource = m_pResource.Get();
-			barriers[0].Transition.Subresource = 0;
+			barriers[0].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 			barriers[0].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 			barriers[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
 			barriers[1].Transition.pResource = m_pResolve.Get();
-			barriers[1].Transition.Subresource = 0;
+			barriers[1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 			barriers[1].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 			barriers[1].Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_DEST;
 			m_pResolveList->ResourceBarrier(2, barriers);
