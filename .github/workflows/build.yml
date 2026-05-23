@@ -1,51 +1,50 @@
-name: Revive x64 Build
+name: Revive x64 Build (Win11/Quest3)
 on: [push, pull_request]
 
 jobs:
   build:
     runs-on: windows-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install MSBuild
+      - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
       - name: Install Vulkan SDK
-        run: |
-          choco install vulkan-sdk -y
-          echo "VULKAN_SDK=C:\VulkanSDK\1.3.268.0" >> $GITHUB_ENV # Adjust version if needed
+        uses: lukka/get-vulkan-sdk@v1
+        with:
+          sdk_version: 1.3.268.0
 
-      - name: Install Qt 5.15.2
+      - name: Install Qt 6.5
         uses: jurplel/install-qt-action@v3
         with:
-          version: '5.15.2'
+          version: '6.5.3'
           arch: 'win64_msvc2019_64'
 
       - name: Setup NSIS
         run: choco install nsis -y
 
-      # Revive depends on Microsoft Detours. 
-      # If it's not in your 'Externals' folder, we build it here.
+      # Manually build Detours as it's a static dependency in your DllMain
       - name: Build Detours
         run: |
           git clone https://github.com/microsoft/Detours.git
           cd Detours
-          nmake /f Makefile
+          nmake
           cd ..
-          mkdir Externals\Detours
-          xcopy /E /I Detours\include Externals\Detours\include
-          xcopy /E /I Detours\lib.X64 Externals\Detours\lib.X64
+          mkdir Externals\Detours\include
+          mkdir Externals\Detours\lib.X64
+          copy Detours\include\* Externals\Detours\include\
+          copy Detours\lib.X64\* Externals\Detours\lib.X64\
 
-      - name: Build Core C++ Components
+      - name: Build Revive Core (DLLs)
         run: |
-          # Note: This assumes you have a Revive.sln. 
-          # If not, you must build the vcxproj files individually.
           msbuild Revive.sln /p:Configuration=Release /p:Platform=x64 /m
 
-      - name: Build Qt Dashboard Overlay
+      - name: Build Dashboard (Qt6)
         shell: cmd
         run: |
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
@@ -53,17 +52,18 @@ jobs:
           qmake ReviveOverlay.pro
           nmake release
 
-      - name: Prepare Release Folder
+      - name: Bundle Deployment
         shell: pwsh
         run: |
-          mkdir build_output
-          copy x64\Release\*.dll build_output\
-          copy x64\Release\ReviveInjector.exe build_output\
-          copy ReviveOverlay\release\ReviveOverlay.exe build_output\
-          # Automatically bundle all required Qt DLLs (Crucial for Win 11)
-          windeployqt --release --qmldir ReviveOverlay build_output\ReviveOverlay.exe
+          mkdir Release
+          # Copy binaries from the build folders
+          copy x64\Release\*.dll Release\
+          copy x64\Release\ReviveInjector.exe Release\
+          copy ReviveOverlay\release\ReviveOverlay.exe Release\
+          # Deploy Qt dependencies (Essential for the QML files to work)
+          windeployqt --release --qmldir ReviveOverlay Release\ReviveOverlay.exe
 
-      - name: Build Installer
+      - name: Build Final Installer
         run: |
           makensis /DNIGHTLY Revive.nsi
         working-directory: .
@@ -71,7 +71,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Revive-Quest3-Win11-Build
+          name: Revive-Quest3-Win11-x64
           path: |
             *.exe
-            build_output/
+            Release/
