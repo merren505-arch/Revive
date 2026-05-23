@@ -78,11 +78,12 @@ ovrResult GetDefaultAudioEndpoint(EDataFlow endpoint, WCHAR deviceStrBuffer[OVR_
 	if (FAILED(hr))
 		return ovrError_AudioDeviceNotFound;
 
-	LPWSTR pGuid;
+	LPWSTR pGuid = nullptr;
 	hr = pDevice->GetId(&pGuid);
 	if (FAILED(hr))
 		return ovrError_AudioComError;
 	wcscpy_s(deviceStrBuffer, OVR_AUDIO_MAX_DEVICE_STR_SIZE, pGuid);
+	CoTaskMemFree(pGuid);
 	return ovrSuccess;
 }
 
