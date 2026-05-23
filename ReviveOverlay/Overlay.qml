@@ -1,8 +1,8 @@
-import QtQuick 2.4
-import Qt.labs.folderlistmodel 2.1
-import QtGraphicalEffects 1.0
-import QtMultimedia 5.6
-import QtGamepad 1.0
+import QtQuick
+import Qt.labs.folderlistmodel
+import QtGraphicalEffects
+import QtMultimedia
+import QtGamepad
 import "Oculus.js" as Oculus
 
 Rectangle {
