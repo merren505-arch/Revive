@@ -20,12 +20,12 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      # Installs LunarG Vulkan SDK and populates environment variables
+      # Installs LunarG Vulkan SDK with caching disabled to prevent deprecated cache toolkit errors
       - name: Install Vulkan SDK
         uses: humbletim/install-vulkan-sdk@v1
         with:
           version: latest
-          cache: true
+          cache: false
 
       - name: Install Qt 6.5
         uses: jurplel/install-qt-action@v3
