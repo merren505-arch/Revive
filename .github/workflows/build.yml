@@ -27,8 +27,9 @@ jobs:
           version: latest
           cache: false
 
+      # Upgraded to v4 to use modern, non-deprecated cache components
       - name: Install Qt 6.5
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
           version: '6.5.3'
           arch: 'win64_msvc2019_64'
