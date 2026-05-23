@@ -65,11 +65,14 @@ ovrHapticsPlaybackState HapticsBuffer::GetState()
 {
 	ovrHapticsPlaybackState state = { 0 };
 
-	for (uint8_t i = m_WriteIndex; i != m_ReadIndex; i++)
+	uint8_t writeIdx = m_WriteIndex.load();
+	uint8_t readIdx = m_ReadIndex.load();
+
+	for (uint8_t i = writeIdx; i != readIdx; i++)
 		state.RemainingQueueSpace++;
 	state.RemainingQueueSpace++;
 
-	for (uint8_t i = m_ReadIndex; i != m_WriteIndex; i++)
+	for (uint8_t i = readIdx; i != writeIdx; i++)
 		state.SamplesQueued++;
 	state.SamplesQueued--;
 
