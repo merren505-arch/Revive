@@ -115,7 +115,10 @@ ovr_GetSessionPhysicalDeviceVk(
 	VK_INSTANCE_FUNCTION(instance, vkGetDeviceProcAddr)
 	VK_INSTANCE_FUNCTION(instance, vkEnumeratePhysicalDevices)
 	VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceMemoryProperties)
-	VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceProperties2KHR)
+	
+	vkGetPhysicalDeviceProperties2KHR = (PFN_vkGetPhysicalDeviceProperties2KHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties2KHR");
+	typedef void (VKAPI_CALL *PFN_vkGetPhysicalDeviceProperties2Local)(VkPhysicalDevice physicalDevice, VkPhysicalDeviceProperties2KHR* pProperties);
+	PFN_vkGetPhysicalDeviceProperties2Local vkGetPhysicalDeviceProperties2 = (PFN_vkGetPhysicalDeviceProperties2Local)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties2");
 
 #ifdef DEBUG
 	VK_INSTANCE_FUNCTION(instance, vkCreateDebugUtilsMessengerEXT)
@@ -160,7 +163,18 @@ ovr_GetSessionPhysicalDeviceVk(
 			properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
 			properties.pNext = &uid;
 
-			vkGetPhysicalDeviceProperties2KHR(device, &properties);
+			if (vkGetPhysicalDeviceProperties2)
+			{
+				vkGetPhysicalDeviceProperties2(device, &properties);
+			}
+			else if (vkGetPhysicalDeviceProperties2KHR)
+			{
+				vkGetPhysicalDeviceProperties2KHR(device, &properties);
+			}
+			else
+			{
+				continue;
+			}
 
 			if (!uid.deviceLUIDValid)
 				continue;
@@ -170,6 +184,11 @@ ovr_GetSessionPhysicalDeviceVk(
 				physicalDevice = device;
 				break;
 			}
+		}
+
+		if (!physicalDevice && !devices.empty())
+		{
+			physicalDevice = devices[0];
 		}
 	}
 
