@@ -40,7 +40,7 @@ bool GetLibraryPath(PWCHAR path, DWORD length, PWCHAR guid)
 	HKEY oculusKey;
 
 	// Open the library key
-	wcsncat(keyPath, guid, MAX_PATH);
+	wcsncat_s(keyPath, MAX_PATH, guid, _TRUNCATE);
 	error = RegOpenKeyExW(HKEY_CURRENT_USER, keyPath, 0, KEY_READ, &oculusKey);
 	if (error != ERROR_SUCCESS)
 	{
@@ -66,7 +66,7 @@ bool GetLibraryPath(PWCHAR path, DWORD length, PWCHAR guid)
 	WCHAR volume[50] = { L'\0' };
 	wcsncpy(volume, volumePath, 49);
 	GetVolumePathNamesForVolumeNameW(volume, path, length, &total);
-	wcsncat(path, volumePath + 49, MAX_PATH);
+	wcsncat_s(path, length, volumePath + 49, _TRUNCATE);
 	free(volumePath);
 
 	return true;
@@ -149,7 +149,7 @@ bool CReviveManifestController::GetDefaultLibraryPath(wchar_t* path, uint32_t le
 	}
 
 	// Open the default library key
-	wcsncat(keyPath, guid, MAX_PATH);
+	wcsncat_s(keyPath, MAX_PATH, guid, _TRUNCATE);
 	error = RegOpenKeyExW(HKEY_CURRENT_USER, keyPath, 0, KEY_READ, &oculusKey);
 	if (error != ERROR_SUCCESS)
 	{
@@ -175,7 +175,7 @@ bool CReviveManifestController::GetDefaultLibraryPath(wchar_t* path, uint32_t le
 	WCHAR volume[50] = { L'\0' };
 	wcsncpy(volume, volumePath, 49);
 	GetVolumePathNamesForVolumeNameW(volume, path, length, &total);
-	wcsncat(path, volumePath + 49, MAX_PATH);
+	wcsncat_s(path, length, volumePath + 49, _TRUNCATE);
 	free(volumePath);
 
 	return true;
