@@ -1,0 +1,77 @@
+name: Revive x64 Build
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Install Vulkan SDK
+        run: |
+          choco install vulkan-sdk -y
+          echo "VULKAN_SDK=C:\VulkanSDK\1.3.268.0" >> $GITHUB_ENV # Adjust version if needed
+
+      - name: Install Qt 5.15.2
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '5.15.2'
+          arch: 'win64_msvc2019_64'
+
+      - name: Setup NSIS
+        run: choco install nsis -y
+
+      # Revive depends on Microsoft Detours. 
+      # If it's not in your 'Externals' folder, we build it here.
+      - name: Build Detours
+        run: |
+          git clone https://github.com/microsoft/Detours.git
+          cd Detours
+          nmake /f Makefile
+          cd ..
+          mkdir Externals\Detours
+          xcopy /E /I Detours\include Externals\Detours\include
+          xcopy /E /I Detours\lib.X64 Externals\Detours\lib.X64
+
+      - name: Build Core C++ Components
+        run: |
+          # Note: This assumes you have a Revive.sln. 
+          # If not, you must build the vcxproj files individually.
+          msbuild Revive.sln /p:Configuration=Release /p:Platform=x64 /m
+
+      - name: Build Qt Dashboard Overlay
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          cd ReviveOverlay
+          qmake ReviveOverlay.pro
+          nmake release
+
+      - name: Prepare Release Folder
+        shell: pwsh
+        run: |
+          mkdir build_output
+          copy x64\Release\*.dll build_output\
+          copy x64\Release\ReviveInjector.exe build_output\
+          copy ReviveOverlay\release\ReviveOverlay.exe build_output\
+          # Automatically bundle all required Qt DLLs (Crucial for Win 11)
+          windeployqt --release --qmldir ReviveOverlay build_output\ReviveOverlay.exe
+
+      - name: Build Installer
+        run: |
+          makensis /DNIGHTLY Revive.nsi
+        working-directory: .
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Revive-Quest3-Win11-Build
+          path: |
+            *.exe
+            build_output/
