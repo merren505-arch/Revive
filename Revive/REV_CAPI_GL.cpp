@@ -10,6 +10,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
 {
 	REV_TRACE(ovr_CreateTextureSwapChainGL);
 
+	if (!session)
+		return ovrError_InvalidSession;
+
 	if (!desc || !out_TextureSwapChain || desc->Type != ovrTexture_2D)
 		return ovrError_InvalidParameter;
 
@@ -55,6 +58,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
                                                          ovrMirrorTexture* out_MirrorTexture)
 {
 	REV_TRACE(ovr_CreateMirrorTextureGL);
+
+	if (!session)
+		return ovrError_InvalidSession;
 
 	if (!desc || !out_MirrorTexture)
 		return ovrError_InvalidParameter;
