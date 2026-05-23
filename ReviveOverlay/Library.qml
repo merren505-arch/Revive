@@ -1,5 +1,5 @@
-import QtQuick 2.4;
-import Qt.labs.folderlistmodel 2.1;
+import QtQuick;
+import Qt.labs.folderlistmodel;
 import "Oculus.js" as Oculus;
 
 Item {
