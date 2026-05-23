@@ -44,7 +44,11 @@ bool COculusOauthTokenController::Init()
 		QFile::remove(tempOculusOfflineDB);
 
 	//The SQLite DB is locked by the oculus service, so we need to make a copy
-	QFile::copy(oculusOfflineDb, tempOculusOfflineDB);
+	if (!QFile::copy(oculusOfflineDb, tempOculusOfflineDB))
+	{
+		qWarning("Failed to copy offline database to temporary path");
+		return false;
+	}
 	m_sqliteDb.setDatabaseName(tempOculusOfflineDB);
 
 	if(!m_sqliteDb.open() || !LoadToken())
